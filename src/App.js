@@ -1,23 +1,60 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import Search from "./components/Search";
+import { BiCalendar } from "react-icons/bi";
+import AddAppoint from "./components/AddAppoint";
+import Appointinfo from "./components/Appointinfo";
+import {useState, useEffect, useCallback} from "react";
+
+
 
 function App() {
+  let [appointlist, setappointlist] = useState([]);
+  let [query, setQuery] = useState("");
+  const filterappointlist = appointlist.filter(
+    item => {
+      return (
+        item.petName.toLowerCase().includes(query.toLowerCase())||
+        item.ownerName.toLowerCase().includes(query.toLowerCase())||
+        item.aptNotes.toLowerCase().includes(query.toLowerCase())
+      )
+    }
+  )
+  const fetchData = useCallback(() => {
+    fetch('./data.json')
+    .then(response => response.json())
+    .then(data => {
+      setappointlist(data)
+    });
+  }, [])
+  
+  useEffect(()=> {
+    fetchData()
+  }, [fetchData])
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+
+    <div className = "App container mx-auto mt-3 font-thin">
+      <h1 className = "text-5xl mb-3">
+      <BiCalendar className="inline-block text-red-400 align-top" />Your Appointments</h1>
+      <AddAppoint />
+      <Search query = {query}
+      onQueryChange = {myquery => setQuery(myquery)}/>
+
+
+      <ul className="divide-y divide-gray-200">
+        {filterappointlist
+          .map(appointment => (
+            <Appointinfo key = {appointment.id}
+            appointment = {appointment}
+            onDeleteAppoint = {
+              appointmentid =>
+              setappointlist(appointlist.filter(appointment=>
+                appointment.id !== appointmentid))
+            }
+          />
+            
+          ))
+        }
+      </ul>
     </div>
   );
 }
